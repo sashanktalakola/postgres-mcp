@@ -50,5 +50,59 @@ def execute_query(query: str) -> dict[str, Any]:
     }
 
 
+@mcp.tool()
+def get_table_names(schema: str = "public") -> dict[str, Any]:
+    """
+    Get all table names in the specified PostgreSQL database schema.
+    
+    Args:
+        schema: The database schema to query (default: "public")
+    
+    Returns:
+        A dictionary containing the list of table names and metadata
+    """
+    try:
+        query = f"""
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = '{schema}' 
+        ORDER BY table_name;
+        """
+        
+        results = execute_read_query(conn, query)
+        
+        if results is None:
+            return {
+                "success": False,
+                "error": f"Failed to retrieve table names from schema '{schema}'",
+                "schema": schema,
+                "tables": [],
+                "table_count": 0
+            }
+        
+        # Extract table names from the results
+        table_names = []
+        if isinstance(results, list):
+            table_names = [row[0] if isinstance(row, (tuple, list)) else row.get('table_name', row) for row in results]
+        else:
+            table_names = [results[0] if isinstance(results, (tuple, list)) else results.get('table_name', results)]
+        
+        return {
+            "success": True,
+            "schema": schema,
+            "tables": table_names,
+            "table_count": len(table_names)
+        }
+        
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "schema": schema,
+            "tables": [],
+            "table_count": 0
+        }
+
+
 if __name__ == "__main__":
     mcp.run(transport="streamable-http")
