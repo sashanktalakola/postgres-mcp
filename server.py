@@ -104,5 +104,67 @@ def get_table_names(schema: str = "public") -> dict[str, Any]:
         }
 
 
+@mcp.tool()
+def get_table_schema(table_name: str, schema: str = "public") -> dict[str, Any]:
+    """
+    Get the schema information for a specific table including columns, data types, constraints, etc.
+
+    Args:
+        table_name: The name of the table to get schema information for
+        schema: The database schema to query (default: "public")
+
+    Returns:
+        A dictionary containing the table schema information
+    """
+    try:
+        query = f"""
+        SELECT 
+            column_name, 
+            data_type, 
+            is_nullable, 
+            character_maximum_length
+        FROM information_schema.columns
+        WHERE table_schema = '{schema}' AND table_name = '{table_name}';
+        """
+        
+        results = execute_read_query(conn, query)
+
+        if results is None:
+            return {
+                "success": False,
+                "error": f"Failed to retrieve schema for table '{table_name}' in schema '{schema}'",
+                "schema": schema,
+                "table": table_name,
+                "columns": []
+            }
+
+        columns = []
+        for row in results:
+            # Assumes each row is a tuple in the order: column_name, data_type, is_nullable, character_maximum_length
+            columns.append({
+                "column_name": row[0],
+                "data_type": row[1],
+                "is_nullable": row[2],
+                "character_maximum_length": row[3]
+            })
+
+        return {
+            "success": True,
+            "schema": schema,
+            "table": table_name,
+            "columns": columns,
+            "column_count": len(columns)
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "schema": schema,
+            "table": table_name,
+            "columns": []
+        }
+
+
 if __name__ == "__main__":
-    mcp.run(transport="streamable-http")
+    mcp.run()
