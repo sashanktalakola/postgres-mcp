@@ -1,0 +1,4 @@
+fastmcp==2.10.6
+psycopg==3.2.9
+psycopg-binary==3.2.9
+PyYAML==6.0.2
