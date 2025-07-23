@@ -14,7 +14,8 @@ conn = create_connection(config)
 @mcp.tool()
 def execute_query(query: str) -> dict[str, Any]:
     """
-    Execute a SQL query on the PostgreSQL database and return the results.
+    Execute a SQL query on the PostgreSQL database and return the results. Make sure to include the
+    appropriate schema name in the query. By default "public" will be used.
     
     Args:
         query: The SQL query to execute (SELECT statements only for safety)
@@ -167,4 +168,4 @@ def get_table_schema(table_name: str, schema: str = "public") -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run(transport="http")
